@@ -7,21 +7,56 @@ class GearDrawingEngine {
         this.gearCenterColor = '#85827F';
         this.gearMainColor = '#63615E';
         this.gearEdgeColor = '#85827F';
+        this.gears = [];
     }
 
-    draw(circles = []) {
+    draw(gearsCoordinates = []) {
         this.drawingContext.save();
-        for (let circleCoordinates of circles) {
+        let previousGear = null
+        for (let gearCoordinates of gearsCoordinates) {
             this.drawingContext.beginPath();
-            this.drawingContext.arc(circleCoordinates.x, circleCoordinates.y, circleCoordinates.r, 0, 2 * Math.PI, false);
+            this.drawingContext.arc(gearCoordinates.x, gearCoordinates.y, gearCoordinates.r, 0, 2 * Math.PI, false);
             this.drawingContext.lineWidth = 5;
             this.drawingContext.strokeStyle = this.gearEdgeColor;
             this.drawingContext.stroke();
             this.drawingContext.closePath();
+            let currentGear = new Gear(gearCoordinates);
+            if (previousGear) {
+                currentGear.setPreviousGear(previousGear);
+            }
+            previousGear = currentGear;
+            this.gears.push(currentGear);
         }
+        this.gears[0].setPreviousGear(previousGear);
+        console.log(this.gears);
         this.drawingContext.restore();
-        let outerTangentsCoordinates = this.generateOuterTangentsCoordinates(circles[0], circles[1]);
-        let innerTangentsCoordinates = this.generateInnerTangentsCoordinates(circles[0], circles[1]);
+        let outerTangentsCoordinates = this.generateOuterTangentsCoordinates(this.gears[0], this.gears[1]);
+        let innerTangentsCoordinates = this.generateInnerTangentsCoordinates(this.gears[0], this.gears[1]);
+    }
+
+    createChainOfGears(gears = []) {
+        let previousGear = gears[gears.length];
+        let currentGear = gears[0];
+        let nextGear = gears[1];
+        do {
+            currentGear.nextOrientation = 'left-top';
+            previousGear = currentGear;
+            currentGear = nextGear;
+        } while (currentGear.nextOrientation === null)
+    }
+
+    calculateTangets(gear) {
+        let tangentPosition = null;
+        let currentGear = gear;
+        do {
+            if (currentGear.nextGearHorizontalPosition !== positionEnum.same
+                && currentGear.nextGearHorizontalPosition === currentGear.previousGear.nextGearHorizontalPosition
+                && currentGear.nextGear.nextGearHorizontalPosition === currentGear.nextGearHorizontalPosition
+                && (currentGear.nextGearVerticalPosition !== currentGear.previousGear.nextGearVerticalPosition)
+            ) {
+
+            }
+        } while (!tangentPosition);
     }
 
     generateOuterTangentsCoordinates(firstCircle, secondCircle) {
@@ -51,7 +86,7 @@ class GearDrawingEngine {
             secondCircle.x + secondCircle.r * Math.cos(Math.PI/2 - angleAlfa),
             secondCircle.y + secondCircle.r * Math.sin(Math.PI/2 - angleAlfa)
         );
-        this.drawLine(rightTangentFirstCirclePoint, rightTangentSecondCirclePoint);
+        //this.drawLine(rightTangentFirstCirclePoint, rightTangentSecondCirclePoint);
 
         // second tangent
         let leftTangentFirstCirclePoint = new Point(
@@ -62,7 +97,7 @@ class GearDrawingEngine {
             secondCircle.x + secondPositionXStatus * secondCircle.r * Math.cos(Math.PI/2 - angleAlfa),
             secondCircle.y + secondPositionYStatus * secondCircle.r * Math.sin(Math.PI/2 - angleAlfa)
         );
-        this.drawLine(leftTangentFirstCirclePoint, leftTangentSecondCirclePoint);
+        //this.drawLine(leftTangentFirstCirclePoint, leftTangentSecondCirclePoint);
 
         return {
             rightTangent: {
@@ -115,8 +150,8 @@ class GearDrawingEngine {
             tangentIntersectionPoint.x + positionXStatus *intersectionToSecondCircleCenterRelatedHypotenuse * Math.sin(intersectionToSecondCircleCenterRelatedFirstAngle + intersectionToSecondCircleCenterRelatedSecondAngle),
             tangentIntersectionPoint.y + positionYStatus * intersectionToSecondCircleCenterRelatedHypotenuse * Math.cos(intersectionToSecondCircleCenterRelatedFirstAngle + intersectionToSecondCircleCenterRelatedSecondAngle)
         );
-        this.drawLine(firstCircleUpperPoint, secondCircleLowerPoint);
-        this.drawLine(firstCircleLowerPoint, secondCircleUpperPoint);
+        //this.drawLine(firstCircleUpperPoint, secondCircleLowerPoint);
+        //this.drawLine(firstCircleLowerPoint, secondCircleUpperPoint);
 
         return {
             rightTangent: {
